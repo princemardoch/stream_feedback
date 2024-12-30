@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Partagez votre Avis</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gradient-to-b from-purple-100 via-blue-50 to-white min-h-screen">
+    <div class="container mx-auto px-4 py-12 max-w-2xl">
+        <div class="bg-white rounded-2xl shadow-2xl p-8 backdrop-blur-lg bg-white/80">
+            <h1 class="text-4xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-purple-600 to-blue-600 mb-8 text-center">
+                Partagez votre Opinion
+            </h1>
+            
+            <form id="feedbackForm" class="space-y-6">
+                <!-- Champ Nom -->
+                <div>
+                    <label for="nameInput" class="block text-sm font-medium text-gray-700 mb-2">Votre nom</label>
+                    <input 
+                        type="text" 
+                        id="nameInput" 
+                        required
+                        placeholder="John Doe"
+                        class="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-purple-500 focus:ring-2 focus:ring-purple-200 transition duration-200 outline-none"
+                    >
+                </div>
+
+                <!-- Champ Avis -->
+                <div>
+                    <label for="feedbackInput" class="block text-sm font-medium text-gray-700 mb-2">Votre message</label>
+                    <textarea 
+                        id="feedbackInput" 
+                        required
+                        placeholder="Partagez votre expérience..."
+                        rows="4"
+                        class="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-purple-500 focus:ring-2 focus:ring-purple-200 transition duration-200 outline-none resize-none"
+                    ></textarea>
+                </div>
+                
+                <button 
+                    type="submit"
+                    class="w-full bg-gradient-to-r from-purple-600 to-blue-600 text-white font-semibold py-4 px-6 rounded-xl transition duration-300 transform hover:scale-[1.02] active:scale-[0.98] shadow-lg hover:shadow-xl"
+                >
+                    Envoyer
+                </button>
+            </form>
+
+            <div id="notification" class="hidden mt-4 p-4 rounded-xl text-center"></div>
+
+            <div class="mt-8 text-center">
+                <a 
+                    href="/feedbacks" 
+                    class="inline-flex items-center text-purple-600 hover:text-purple-800 font-medium transition duration-200"
+                >
+                    <span>Voir tous les avis</span>
+                    <svg class="w-5 h-5 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/>
+                    </svg>
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const form = document.getElementById('feedbackForm');
+        const notification = document.getElementById('notification');
+
+        function showNotification(message, type = 'success') {
+            notification.textContent = message;
+            notification.className = `mt-4 p-4 rounded-xl text-center ${
+                type === 'success' 
+                    ? 'bg-green-100 text-green-700' 
+                    : 'bg-red-100 text-red-700'
+            }`;
+            notification.style.display = 'block';
+            setTimeout(() => {
+                notification.style.display = 'none';
+            }, 3000);
+        }
+
+        form.addEventListener('submit', function(event) {
+            event.preventDefault();
+            
+            const nameInput = document.getElementById('nameInput');
+            const feedbackInput = document.getElementById('feedbackInput');
+            const name = nameInput.value.trim();
+            const feedback = feedbackInput.value.trim();
+            
+            if (name && feedback) {
+                const submitButton = form.querySelector('button');
+                submitButton.disabled = true;
+                submitButton.classList.add('opacity-75');
+
+                fetch('/submit', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ name, feedback }),
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        nameInput.value = '';
+                        feedbackInput.value = '';
+                        showNotification('Votre avis a été envoyé avec succès ! ✨');
+                    }
+                })
+                .catch(error => {
+                    console.error('Erreur:', error);
+                    showNotification('Une erreur est survenue. Veuillez réessayer.', 'error');
+                })
+                .finally(() => {
+                    submitButton.disabled = false;
+                    submitButton.classList.remove('opacity-75');
+                });
+            }
+        });
+    </script>
+</body>
+</html>
